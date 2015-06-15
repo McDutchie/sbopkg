@@ -187,12 +187,12 @@ yesno_to_setunset() {
     # If the variable value is different from "yes" and "no" (case
     # insensitive) spit an error message and exit.
 
-    # Note: $(eval echo \$$1) is the value of the variable (remember that
+    # Note: ${!1} is the value of the variable (remember that
     # $1 is the variable _name_).
 
-    if [[ $(eval echo \$$1) == [Nn][Oo] ]]; then
+    if [[ ${!1} == [Nn][Oo] ]]; then
         unset $1
-    elif [[ $(eval echo \$$1) != [Yy][Ee][Ss] ]]; then
+    elif [[ ${!1} != [Yy][Ee][Ss] ]]; then
         cat <<EOF
 
 ERROR
