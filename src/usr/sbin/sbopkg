@@ -674,9 +674,9 @@ get_new_name() {
         CANDIDATE="$OLD_NAME"
     else
         # The package got renamed
-        CANDIDATE=$(cut -d= -f2 <<< "$CANDIDATE")
+        CANDIDATE=${CANDIDATE#*=}
     fi
-    eval $NEW_NAME_VAR="$CANDIDATE"
+    eval "$NEW_NAME_VAR=\$CANDIDATE"
 }
 
 get_old_name() {
@@ -693,7 +693,7 @@ get_old_name() {
     )
 
     # By default, the old name is the new name
-    eval $OLD_NAME_VAR=$NEW_NAME
+    eval "$OLD_NAME_VAR=\$NEW_NAME"
     # Set the old name to the first installed old-named package found.
     # Reading from $substitutions...
     while read CANDIDATE; do
@@ -703,7 +703,7 @@ get_old_name() {
         if [[ -n "$INSTALLED" ]]; then
             # Old-named installed package found, assume this is the correct
             # old name to return.
-            eval $OLD_NAME_VAR=$CANDIDATE
+            eval "$OLD_NAME_VAR=\$CANDIDATE"
             break
         fi
     done <<< "$SUBSTITUTIONS"
