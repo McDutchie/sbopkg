@@ -838,8 +838,8 @@ check_for_updates() {
                 fi
 
                 # Compare the old $VER and the new $NEWVER
-                VER_NUMERIC=$(tr -c "[:digit:]" " " <<< "$PKG_VER")
-                NEWVER_NUMERIC=$(tr -c "[:digit:]" " " <<< "$NEWVER")
+                VER_NUMERIC=${PKG_VER//[![:digit:]]/ }
+                NEWVER_NUMERIC=${NEWVER//[![:digit:]]/ }
                 # The version number must have the same number of digits
                 VER_NDIGIT=$(wc -w <<< $VER_NUMERIC)
                 NEWVER_NDIGIT=$(wc -w <<< $NEWVER_NUMERIC)
@@ -853,10 +853,8 @@ check_for_updates() {
                 done
                 # The build number is just like the least significant version
                 # number
-                VER_NUMERIC="$VER_NUMERIC $(tr -c "[:digit:]" ' ' \
-                    <<< "$PKG_BUILD")"
-                NEWVER_NUMERIC="$NEWVER_NUMERIC $(tr -c "[:digit:]" ' ' \
-                    <<< "$NEWBUILD")"
+                VER_NUMERIC="$VER_NUMERIC ${PKG_BUILD//[![:digit:]]/ }"
+                NEWVER_NUMERIC="$NEWVER_NUMERIC ${NEWBUILD//[![:digit:]]/ }"
                 UPDATED=$(updates_compare_versions $VER_NUMERIC \
                     $NEWVER_NUMERIC)
 
