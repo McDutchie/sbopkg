@@ -199,7 +199,7 @@ ERROR
 $SCRIPT: Unexpected value in $1
 
 The configuration variable $1 is expected to be set to either YES or NO
-(case insensitive). Its current value instead is $(eval echo \$$1).
+(case insensitive). Its current value instead is ${!1}.
 
 Please fix this error by setting the appropriate value in
 /etc/sbopkg/sbopkg.conf and/or in ~/.sbopkg.conf
