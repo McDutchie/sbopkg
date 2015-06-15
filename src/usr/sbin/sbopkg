@@ -65,10 +65,14 @@ split_pkg_name() {
 
     local FILE=${1##*/}
 
-    eval $(echo $FILE | sed '
-        s/\(.*\)-\([^-]*\)-\([^-]*\)-\([0-9]*\)\(.*\)*/\
-        PKG_NAME=\1 PKG_VER=\2 PKG_ARCH=\3 PKG_BUILD=\4 PKG_TAG=\5/
-    ')
+    PKG_TAG=${FILE##*[0-9]}
+    FILE=${FILE%"$PKG_TAG"}
+    PKG_BUILD=${FILE##*-}
+    FILE=${FILE%"-$PKG_BUILD"}
+    PKG_ARCH=${FILE##*-}
+    FILE=${FILE%"-$PKG_ARCH"}
+    PKG_VER=${FILE##*-}
+    PKG_NAME=${FILE%"-$PKG_VER"}
 }
 
 set_type() {
