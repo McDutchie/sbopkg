@@ -220,7 +220,7 @@ load_repositories() {
     for FILE in $SBOPKG_REPOS_D/*.repo; do
         # Reading from $FILE...
         while read LINE; do
-            grep -q '#' <<< "$LINE" && continue
+            [[ $LINE =~ '#' ]] && continue
             eval TMPARRAY=( "$LINE" )
             [[ ${#TMPARRAY[@]} -eq 0 ]] && continue;
             # Sanity checks
