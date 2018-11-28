@@ -1,0 +1,67 @@
+#!/bin/sh
+
+# $Id$
+
+# sqg - sbopkg queuefile generator
+# A script designed to generate queuefiles for sbopkg with recursively-listed
+# dependencies from the REQUIRES line of the .info files.
+
+# Copyright 2013 Chess Griffin <chess@chessgriffin.com> and
+# slakmagik <slakmagik@gmail.com>
+# Copyright 2016-2018 Willy Sudiarto Raharjo <willysr@sbopkg.org>
+
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright notice,
+# this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR
+#  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+#  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN
+#  NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+#  TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+#  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+#  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+#  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+#  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+### OPTIONAL CONFIGURATION BELOW ###
+
+SBOPKG_CONF=${SBOPKG_CONF:-/etc/sbopkg/sbopkg.conf}
+
+### NO CHANGES SHOULD BE NECESSARY BELOW THIS LINE ###
+
+# source all sqg functions
+. /usr/libexec/sbopkg/sqg/functions
+
+SCRIPT=${0##*/}
+OPT_JOBS=1
+OPT_ALL="no"
+OPT_PACKAGES=""
+OPT_OUTPUT=""
+
+sanity_checks
+
+while getopts "ap:j:ho:" OPT; do
+  case $OPT in
+    a ) OPT_ALL="yes" ;;
+    p ) OPT_PACKAGES=$OPTARG ;;
+    j ) get_jobs "$OPTARG"; OPT_JOBS=$?; ;;
+    o ) OPT_OUTPUT="$OPTARG" ;;
+    h ) usage $SCRIPT; exit 0; ;;
+    ? ) exit 1; ;;
+  esac
+done
+
+if [ $OPTIND -eq 1 ]; then
+  echo -e "Missing argument(s).\n"
+  usage $SCRIPT
+  exit 1
+fi
+
+execute_build "$REPO_DIR" "$QUEUEDIR" "$OPT_PACKAGES" "$OPT_ALL" $OPT_JOBS "$OPT_OUTPUT"
+
+echo "Done."
+exit 0

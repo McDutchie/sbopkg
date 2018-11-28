@@ -21,9 +21,9 @@ packages.
 usage assumes an understanding of SlackBuilds, generally, and the
 third-party SBo repository, specifically.
 A thorough reading of
-.I http://www.slackbuilds.org/howto/
+.I https://www.slackbuilds.org/howto/
 and the pages at
-.I http://www.slackwiki.org
+.I https://www.slackwiki.com
 about SlackBuilds is strongly advised.
 .PP
 In order for
@@ -394,6 +394,12 @@ files of all installed packages from the active repo.
 ``Rsync'' the local repository with SBo and quit.
 .\"---------------------------------------------------------------------
 .TP
+.B \-S
+Enable the ``sandbox mode.''
+When this flag is specified packages will be built with sandbox.
+This will prevent the build from modifying files it should not.
+.\"---------------------------------------------------------------------
+.TP
 .BI \-s " PACKAGE(s)"
 Specific search for
 .I PACKAGE(s)
@@ -504,6 +510,9 @@ document in the
 documentation directory for more information.
 .\"=====================================================================
 .SH AUTHORS
+Willy Sudiarto Raharjo
+<willysr@sbopkg.org>
+
 Chess Griffin
 <chess@chessgriffin.com>
 .PP

@@ -1,0 +1,252 @@
+#!/bin/sh
+
+#
+# Use file system for caching SlackBuilds.
+#
+SQG_TMP_DIR=${SQG_TMP_DIR:-/tmp/sqg}
+
+#
+# Sanity checks:
+# - sbopkg.conf is available
+# - slackbuilds.org was synced with `rsync` or `git`
+# - directory checks
+#
+sanity_checks () {
+  if [ ! -e "$SBOPKG_CONF" ]; then
+    echo "$SBOPKG_CONF not found."
+    echo "Check the configurable variables at the top of the script."
+    exit 1
+  else
+    . $SBOPKG_CONF
+  fi
+
+  if [ -d $REPO_ROOT/$REPO_NAME/.git ]; then
+    REPO_SUBPATH=$REPO_NAME
+  else
+    REPO_SUBPATH=$REPO_NAME/$REPO_BRANCH
+  fi
+
+  REPO_DIR=$REPO_ROOT/$REPO_SUBPATH
+  if [ ! -w "$QUEUEDIR" ] || [ ! -d "$REPO_DIR" ]; then
+    echo "ERROR: $QUEUEDIR or $REPO_DIR do not exist or are not writable."
+    echo "Check the configurable variables at the top of the script."
+    exit 1
+  fi
+
+  rm -rf "$SQG_TMP_DIR"
+  mkdir -p "$SQG_TMP_DIR"
+}
+
+#
+# Prints the help message.
+#
+usage () {
+  local SCRIPT="$1"
+
+cat << EOF
+Usage: $SCRIPT -p <packagename(s)> [-j #] | -a [-j #]
+Options are:
+  -p package(s) Creates queuefile(s) for individual package(s).
+                Multiple packages can be passed with quotes,
+                e.g. -p "pkg1 pkg2".
+                Package names are case-sensitive.
+  -a            Builds queuefiles for all packages.
+  -j            Number of concurrent queuefile generation processes.
+                This could heavily raise disk I/O so use with care.
+                Requires: GNU parallel
+                Default: 1
+  -o            User-defined queue output filename (without .sqf extension).
+                This could be useful to create custom queue file.
+                Multiple packages can be passed with quotes,
+                eg. -p "qt5-webkit sshblock letsencrypt" -o myqueue
+
+This script will overwrite existing queuefiles in \$QUEUEDIR so back up any
+existing queuefile(s) or local modifications. Check the top of the script for
+configurable variables.
+EOF
+exit
+}
+
+#
+# Parses and validates the amount of parallel processes defined by option -j.
+# Returns the amount of jobs if value is an unsigned integer.
+# Otherwise exits with code 1.
+#
+get_jobs () {
+  local JOBS=${1:-1}
+
+  if [ ! $JOBS -ge 1 ]; then
+    echo "ERROR: Value for -j must be an unsigned integer > 0."
+    exit 1
+  else
+    JOBS=$1
+  fi
+
+  return $JOBS
+}
+
+#
+# Tries to find the dependency listed in the SlackBuilds .info file and writes
+# the path into a temporary file. If the package was already found, it gets the
+# path from inside the temporary file to speed up the overall process.
+# If the package path of the dependent package isn't empty, the function
+# returns 1. Otherwise 0.
+#
+search_package () {
+  local REPO_DIR="$1"
+  local SRCHAPP="$2"
+
+  if [[ -f "$SQG_TMP_DIR/$SRCHAPP" ]]; then
+    PKGPATH=$(cat "$SQG_TMP_DIR/$SRCHAPP")
+  else
+    cd $REPO_DIR
+    PKGPATH=($(find -type d -mindepth 2 -maxdepth 2 -name "$SRCHAPP" | sort))
+    echo "$PKGPATH" > "$SQG_TMP_DIR/$SRCHAPP"
+  fi
+
+  if [ -z "$PKGPATH" ]; then
+    return 1
+  else
+    return 0
+  fi
+}
+
+#
+# Parses the REQUIRES variable inside the SlackBuild .info file and recursively
+# writes the dependent package name into the queue file.
+#
+parse_queuefile_requires () {
+  local REPO_DIR="$1"
+  local PARSEAPP="$2"
+  local QUEUEFILE="$3"
+  local DEPLIST DEP RESPONSE
+
+  if search_package "$REPO_DIR" "$PARSEAPP"; then
+    . $REPO_DIR/$PKGPATH/$PARSEAPP.info
+    DEPLIST=($REQUIRES)
+    for DEP in "${DEPLIST[@]}"; do
+      if [ "$DEP" == "%README%" ]; then
+        echo "# %README%: see the $PARSEAPP README file. " >> $QUEUEFILE
+        continue
+      fi
+
+      if search_package "$REPO_DIR" "$DEP"; then
+        sed -i "/^$DEP$/ d" $QUEUEFILE
+        echo "$DEP" >> $QUEUEFILE
+        parse_queuefile_requires "$REPO_DIR" "$DEP" "$QUEUEFILE"
+      fi
+    done
+  else
+    echo "$PARSEAPP: not found."
+    read -s -p ' Do you want to continue? [y/N]' RESPONSE
+    RESPONSE=$(echo "$RESPONSE" | awk '{print tolower($0)}')
+
+    if [[ "$RESPONSE" =~ ^\(yes|y\)$ ]]; then
+      continue
+    else
+      exit 1
+    fi
+  fi
+}
+
+#
+# Starts the process of building the packages queue file.
+#
+build_queuefile () {
+  local REPO_DIR="$1"
+  local QUEUEDIR="$2"
+  local PRGNAM="$3"
+
+  local OLDFILE=$QUEUEDIR/$PRGNAM.sqf
+  local QUEUEFILE=$QUEUEDIR/$PRGNAM.sqf.tmp
+  local CATFILE=$QUEUEDIR/$PRGNAM.tmp.sqf
+
+  touch $QUEUEFILE
+  echo "$PRGNAM" > $QUEUEFILE
+  parse_queuefile_requires "$REPO_DIR" "$PRGNAM" "$QUEUEFILE"
+  tac $QUEUEFILE > $CATFILE
+  if cmp -s "$CATFILE" "$OLDFILE"; then
+    rm $QUEUEFILE $CATFILE
+  else
+    mv $CATFILE $OLDFILE
+    rm $QUEUEFILE
+  fi
+}
+
+#
+# `cat` all given packages into one custom queue file.
+#
+build_queuefile_custom () {
+  local QUEUEDIR=$1
+  local QUEUENAME=$(basename $2 .sqf)
+  local PACKAGES=$3
+
+  $(
+    cd "$QUEUEDIR"
+    rm -f "$QUEUEDIR/$QUEUENAME.sqf"
+
+    for PKG in ${PACKAGES[@]}; do
+      if [ -f "$PKG.sqf" ]; then
+         cat "$PKG.sqf" >> "$QUEUENAME.sqf"
+      fi
+    done
+  )
+}
+
+#
+# Processes all or given packages depending on option.
+#
+execute_build () {
+  local REPO_DIR="$1"
+  local QUEUEDIR="$2"
+  local PKGS="$3"
+  local ALL="${4:-no}"
+  local JOBS="${5:-1}"
+  local CUSTOM_QUEUE="${6:-}"
+  local PKGSNEW=()
+  local VERBOSE="no"
+  local PKG INFOPATH
+
+  if [ "$ALL" == "yes" ]; then
+    printf "Processing all SlackBuilds in the $REPO_SUBPATH repository..."
+    PKGSNEW=($(find "$REPO_DIR" -name "*.info" -print0 | xargs -r0))
+  else
+    for PKG in ${PKGS[@]}; do
+      INFOPATH=$(find "$REPO_DIR" -name ${PKG}.info)
+
+      if [ -z "$INFOPATH" ]; then
+        echo "$PKG: Not found."
+        exit
+      fi
+
+      PKGSNEW+=($INFOPATH)
+    done
+
+    VERBOSE="yes"
+  fi
+
+  printf '%s\n' "${PKGSNEW[@]}" | \
+      parallel --eta --will-cite --jobs $JOBS \
+      /usr/libexec/sbopkg/sqg/sqg-build-queuefile \
+      "$REPO_DIR" "$QUEUEDIR" {} "$VERBOSE"
+
+  if [ ! -z $CUSTOM_QUEUE ]; then
+    build_queuefile_custom "$QUEUEDIR" "$CUSTOM_QUEUE" "$PKGS"
+  fi
+}
+
+#
+# Check .info validity
+# We only check for PRGNAM for now, but more may be added in the future
+#
+check_validity() {
+  local INFO_FILE="$1"
+
+  check_program=`grep PRGNAM $INFO_FILE`
+
+  if [ $? -eq 0 ]; then
+    return 0
+  else
+    return 1
+  fi
+}

@@ -1,5 +1,89 @@
 SBOPKG NEWS
 
+sbopkg-dev (2018-09-01 23:00:08 UTC)
+    FEATURES
+	* sqg: Parallelize building of single and all packages by option -j.
+	  Patch by Marcel Saegebarth.
+	* sqg: Introduced new simple filesystem cache.
+	  This will reduce queue generation time significantly when
+	  invoked with -j N+1 (N: Number of cores)
+	  Patch by Marcel Saegebarth.
+        * sqg: Generate one queue file for multiple programs by option -o.
+          The output queue filename is user-defined.
+          You can then run sbopkg -i <queue-name> to install all packages+deps.
+          Feature Request by Jeremy/bassmadrigal (Fixed #13).
+          Implement contributions from Marcel Saegebarth.
+        * sqg: Added manual page for sqg.
+	* sbopkg: No need to do complete check for old sources if no sources available
+	  Initial patch by Loki Harfagr
+	* sbopkg: Added support for Slackware 15.0
+	* sbopkg: Added new option in sbopkg.conf: BLACKLISTFILE
+          This is used to define blacklisted package(s)
+          Feature Request by khronosschoty
+        * sbopkg: Show version when using -g in command line
+          Patch by Yaroslav Shmelev.
+        * sbopkg: Add optional sandbox support.
+          Initial patch by Orbea (#49).
+        * sbopkg: Add logrotate support.
+          Feature Request by wronguser (#50).
+
+    MODIFICATIONS
+	* bash-completion: Complete -i and -b when git repo is used
+	  Patch by Sergey V.
+        * move sqg functions to /usr/libexec
+	  Patch by Marcel Saegebarth
+        * use exit 1 when rsync failed instead of 0
+        * Fix 90-SBo-master.repo to accomodate SBo's new server
+          Patch by Matteo Bernardini
+        * Remove SKIP_EMPTY option.
+        * Fix wrong glob expansion
+          Patch by Alan
+        * Use correct SlackBuild file name to build package
+          Patch by Erich Ritz
+        * Fix bug in updates_compare_versions()
+          Patch by arcctgx (#41)
+        * Fix parsing errors with shellcheck.
+          Patch by orbea (#42)
+        * Increase timeout on update detection (#43)
+        * sqg: Check for invalid .info files before processing.
+        * Support update ability for -current repo
+          Patch by JK Wood, reviewed by Matteo Bernardini (51)
+
+sbopkg 0.38.1 (2016-09-01 13:42 UTC)
+    FEATURES
+        * Added option to download from third party source repository
+          in case the one mentioned in .info failed or having bad checksums.
+        * Added new option in sbopkg.conf: SRC_REPO
+          This is used to define third party source repository
+          sbopkg: Added option to download from third party source.
+
+    MODIFICATIONS
+        * Do not use wildcard for GPG checking (Fix #19)
+
+sbopkg-0.38.0 (2016-07-01 16:52:27 UTC)
+    FEATURES
+	* Add --no-group to rsync so files are owned by root:root
+	  Patch by pyllyukko
+	* Updated es translations (Dhaby Xiloj)
+	* Moved sqg to /usr/sbin
+        * Added support for Slackware 14.2.
+        * Update queue sample files
+
+sbopkg-0.37.1 (2015-10-27 03:02:59 UTC)
+
+    FEATURES
+	* Add --visit-items option in certain part of dialog to help
+	  disabled people
+	* Added SBo master branch repo (git)
+
+    MODIFICATIONS
+
+	* Move PIDFILE to global variable
+	* Update copyright
+	* Transitions from code.google.com to github.com
+	* Remove SVN-stuff
+	* Fix sqg branch to 14.1 by default.
+
 sbopkg 0.37.0 (2013-12-09 15:10 UTC)
 
     FEATURES

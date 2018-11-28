@@ -3,7 +3,7 @@ Content-type: text/html
 <HTML><HEAD><TITLE>Manpage of SBOPKG.CONF</TITLE>
 </HEAD><BODY>
 <H1>SBOPKG.CONF</H1>
-Section:  (5)<BR>Updated: December 2013<BR><A HREF="#index">Index</A>
+Section:  (5)<BR>Updated: September 2016<BR><A HREF="#index">Index</A>
 <A HREF="http://localhost/cgi-bin/man/man2html">Return to Main Contents</A><HR>
 
 
@@ -376,7 +376,7 @@ files and can also be listed by issuing
 <DT><DD>
 The default assignment is:
 <DT><DD>
-REPO_BRANCH=${REPO_BRANCH:-14.1}
+REPO_BRANCH=${REPO_BRANCH:-14.2}
 
 <DT><B>REPO_NAME</B>
 
@@ -418,7 +418,7 @@ Path.
 <DT><DD>
 This option allows the user to set the location of the local mirrors of
 the remote repositories.
-Currently, the size of a local copy of the SBo repository is about 220MB.
+Currently, the size of a local copy of the SBo repository is about 221MB.
 <DT><DD>
 The default assignment is:
 <DT><DD>
@@ -572,6 +572,15 @@ The default assignment is:
 <DT><DD>
 WGETFLAGS=&quot;${WGETFLAGS:--c --progress=bar:force --timeout=30 --tries=5}&quot;
 
+<DT><B>SRC_REPO</B>
+
+<DD>
+Path.
+<DT><DD>
+This option sets the alternative third party source repository that can
+be used to download the source files for package building.
+<DT><DD>
+The default value is hard-coded to http://slackware.uk/sbosrcarch
 </DL>
 <A NAME="lbAD">&nbsp;</A>
 <H2>NOTES</H2>
@@ -782,6 +791,9 @@ documentation directory for more information.
 <A NAME="lbAH">&nbsp;</A>
 <H2>AUTHORS</H2>
 
+Willy Sudiarto Raharjo
+&lt;<A HREF="mailto:willysr@sbopkg.org">willysr@sbopkg.org</A>&gt;
+<P>
 Chess Griffin
 &lt;<A HREF="mailto:chess@chessgriffin.com">chess@chessgriffin.com</A>&gt;
 <P>
@@ -812,7 +824,7 @@ slakmagik
 
 <B><A HREF="http://localhost/cgi-bin/man/man2html?1+wget">wget</A></B>(1),
 
-<I>/usr/doc/sbopkg-0.37.0/*</I>
+<I>/usr/doc/sbopkg-0.38.1/*</I>
 
 
 <P>
@@ -835,6 +847,6 @@ slakmagik
 This document was created by
 <A HREF="http://localhost/cgi-bin/man/man2html">man2html</A>,
 using the manual pages.<BR>
-Time: 15:10:40 GMT, December 09, 2013
+Time: 13:42:15 GMT, September 01, 2016
 </BODY>
 </HTML>

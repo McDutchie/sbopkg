@@ -382,6 +382,18 @@ The default assignment is:
 .IP
 \fCxxxSRCDIRxxx\fP
 .\"---------------------------------------------------------------------
+.\"---------------------------------------------------------------------
+.TP
+.B BLACKLISTFILE
+Path.
+.IP
+This option contains the location of the file that list all blacklisted
+package(s).
+.IP
+The default assignment is:
+.IP
+\fCxxxBLACKLISTFILExxx\fP
+.\"---------------------------------------------------------------------
 .TP
 .B TMP
 Path.
@@ -450,6 +462,15 @@ is a useful option to play with if getting download errors.
 The default assignment is:
 .IP
 \fCxxxWGETFLAGSxxx\fP
+.\"=====================================================================
+.TP
+.B SRC_REPO
+Path
+.IP
+This option sets the alternative third party source repository that can
+be used to download the source files for package building.
+.IP
+The default value is hard-coded to http://slackware.uk/sbosrcarch
 .\"=====================================================================
 .SH NOTES
 .\"---------------------------------------------------------------------
@@ -592,6 +613,9 @@ document in the
 documentation directory for more information.
 .\"=====================================================================
 .SH AUTHORS
+Willy Sudiarto Raharjo
+<willysr@sbopkg.org>
+
 Chess Griffin
 <chess@chessgriffin.com>
 .PP
